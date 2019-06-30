@@ -4,33 +4,23 @@ import (
 	"fmt"
 	"github.com/bp1222/mud/game"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
+	"strconv"
 )
 
 func main() {
-	sg := make(chan os.Signal)
-	signal.Notify(sg, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGTERM)
-
-	game.GameServer = game.NewServer()
+	var copyoverFiles = 0
+	var err error
+	server := game.NewServer()
 
 	fmt.Println("Welcome to Game")
 
-	game.GameServer.Start()
-	for {
-		if !game.GameServer.Running() {
-			break
-		}
-
-		select {
-		case <-sg:
-			game.GameServer.Stop()
-		case <-time.After(time.Millisecond * 100):
-			continue
+	if len(os.Args) > 1 {
+		if copyoverFiles, err = strconv.Atoi(os.Args[1]); err != nil {
+			copyoverFiles = 0
 		}
 	}
-	game.GameServer.Stop()
+
+	server.Run(copyoverFiles)
 
 	fmt.Println("Exiting")
 }
